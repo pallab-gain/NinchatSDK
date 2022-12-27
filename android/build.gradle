@@ -35,8 +35,8 @@ ext {
 
     moduleGroupId = 'com.facebook.react'
 
-    mavenRepo = "/tmp/repo"
-    sdkVersion = "0.0.9"
+    mavenRepo = "/Users/pallabgain/Documents/development/ninchat/react-native-playground/with0.68.4/NinchatSDK"
+    sdkVersion = "0.1.0"
 }
 
 allprojects {

@@ -87,7 +87,7 @@ publishing {
 
     repositories {
         maven {
-            url "/tmp/repo"
+            url rootProject.ext.mavenRepo
         }
     }
 }
