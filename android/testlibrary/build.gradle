@@ -1,0 +1,93 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+android {
+    namespace 'com.ninchat.testlibrary'
+    compileSdk 32
+
+    defaultConfig {
+        minSdk 21
+        targetSdk 32
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'com.google.android.material:material:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+
+    implementation project(path: ':react-native-gesture-handler')
+    implementation project(path: ':react-native-keychain')
+    implementation project(path: ':react-native-safe-area-context')
+    implementation project(path: ':react-native-screens')
+    implementation project(path: ':react-native-svg')
+
+    //noinspection GradleDynamicVersion
+    api 'com.facebook.react:react-native:+'
+    //noinspection GradleDynamicVersion
+    implementation 'org.webkit:android-jsc:+'
+}
+
+publishing {
+    publications {
+        aarArchive(MavenPublication) {
+            groupId 'com.ninchat'
+            artifactId 'testlibrary'
+            version rootProject.ext.sdkVersion
+
+            artifact("${project.buildDir}/outputs/aar/${project.name}-release.aar") {
+                extension "aar"
+            }
+            pom.withXml {
+                def pomXml = asNode()
+                pomXml.appendNode('name', 'testlibrary')
+                pomXml.appendNode('description', 'Sample test library')
+                def dependencies = pomXml.appendNode('dependencies')
+                configurations.getByName('releaseCompileClasspath').getResolvedConfiguration().getFirstLevelModuleDependencies().each {
+                    // The (third-party) React Native modules that we depend on
+                    // are in source code form and do not have groupId. That is
+                    // why we have a dedicated groupId for them. But the other
+                    // dependencies come through Maven and, consequently, have
+                    // groupId.
+                    def groupId = it.moduleGroup
+                    def artifactId = it.moduleName
+
+                    if (artifactId.startsWith('react-native-')) {
+                        groupId = rootProject.ext.moduleGroupId
+                    }
+
+                    def dependency = dependencies.appendNode('dependency')
+                    dependency.appendNode('groupId', groupId)
+                    dependency.appendNode('artifactId', artifactId)
+                    dependency.appendNode('version', it.moduleVersion)
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url "/tmp/repo"
+        }
+    }
+}
